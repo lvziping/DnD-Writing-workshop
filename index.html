@@ -820,8 +820,8 @@ function toast(msg,bg){const t=$('toastEl');t.style.background=bg||'#d32f2f';t.t
 function copyTxt(t){navigator.clipboard.writeText(t).then(()=>toast('已复制 ✓','#2e7d32'));}
 
 // ═══════════════════ THEME ═══════════════════
-let isDark=localStorage.getItem('crd_theme')==='dark';
-if(!isDark)document.body.classList.add('light');
+let isDark=false;
+document.body.classList.add('light');
 function toggleTheme(){
   isDark=!isDark;
   document.body.classList.toggle('light',!isDark);
