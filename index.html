@@ -1018,7 +1018,7 @@ document.addEventListener('click',function(e){if(!e.target.closest('.more-wrap')
 $('archiveModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeArchive();});
 
 // ═══════════════════ SYNONYM ═══════════════════
-let synEnabled=localStorage.getItem('crd_syn')!=='off';
+let synEnabled=localStorage.getItem('crd_syn')==='on';
 function toggleSyn(){synEnabled=!synEnabled;localStorage.setItem('crd_syn',synEnabled?'on':'off');$('btnSyn').classList.toggle('on',synEnabled);toast(synEnabled?'释义已开启':'释义已关闭','#5b6abf');}
 if(synEnabled)$('btnSyn').classList.add('on');
 
@@ -1601,8 +1601,10 @@ function saveProj(){
 }
 function quickSave(){
   if(!curProjId){
-    // No current project — create one automatically
-    const name=$('titleInput').value||'文档 '+(projects.length+1);
+    // First save — ask user to name the project
+    const defaultName=$('titleInput').value||'文档 '+(projects.length+1);
+    const name=prompt('请为存档命名：',defaultName);
+    if(!name)return;
     const p={id:Date.now(),name,content:$('writerArea').value,title:$('titleInput').value,chars:$('writerArea').value.replace(/\s/g,'').length,date:new Date().toLocaleDateString('zh-CN'),chatHistory:JSON.parse(JSON.stringify(chatHist)),advState:getAdvSnapshot()};
     projects.push(p);curProjId=p.id;saveProjects();
     $('footProj').textContent='📜 '+name;$('titleMeta').textContent='📜 '+name;
@@ -1670,7 +1672,8 @@ async function genAdvBackstory(){
 
 // ═══════════════════ ROBUST JSON PARSER ═══════════════════
 function extractJSON(text){
-  let cleaned=text.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();
+  // Strip BOM, control chars, markdown fences, and normalize whitespace
+  let cleaned=text.replace(/^﻿/,'').replace(/```json\s*/gi,'').replace(/```\s*/gi,'').replace(/[\r\x00-\x09\x0B\x0C\x0E-\x1F]/g,'').trim();
   try{return JSON.parse(cleaned);}catch(e){}
   const start=cleaned.indexOf('{');
   if(start>=0){
@@ -1679,7 +1682,19 @@ function extractJSON(text){
       if(cleaned[i]==='{')depth++;
       else if(cleaned[i]==='}'){depth--;if(depth===0){end=i;break;}}
     }
-    if(end>start){try{return JSON.parse(cleaned.slice(start,end+1));}catch(e){}}
+    if(end>start){
+      let chunk=cleaned.slice(start,end+1);
+      try{return JSON.parse(chunk);}catch(e){}
+      // Fix common LLM issues: unescaped newlines inside JSON strings
+      chunk=chunk.replace(/\n/g,'\\n').replace(/\t/g,'\\t');
+      try{return JSON.parse(chunk);}catch(e){}
+      // Last resort: regex extract narrative and choices
+      try{
+        const nm=chunk.match(/"narrative"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+        const cm=[...chunk.matchAll(/"text"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*"dc"\s*:\s*(\d+)/g)];
+        if(nm){return{narrative:nm[1].replace(/\\n/g,'\n').replace(/\\"/g,'"'),choices:cm.map(m=>({text:m[1].replace(/\\n/g,'\n').replace(/\\"/g,'"'),dc:parseInt(m[2])}))};}
+      }catch(e){}
+    }
   }
   return{narrative:text.trim(),choices:[]};
 }
