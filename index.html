@@ -744,7 +744,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 <div><strong>联系方式</strong></div>
 <div>邮箱：<a href="mailto:lvziping@163.com" style="color:var(--accent);">lvziping@163.com</a></div>
 <div>小红书：<a href="https://www.xiaohongshu.com/user/profile/5cc6ec9900000000160130fc" target="_blank" rel="noopener" style="color:var(--accent);">@诶哎梓平</a></div>
-<div>GitHub：<a href="https://github.com/lvziping/DnD-Writing-workshop" target="_blank" rel="noopener" style="color:var(--accent);">writing-workshop</a></div>
+<div>GitHub：<a href="https://github.com/lvziping/DnD-Writing-workshop" target="_blank" rel="noopener" style="color:var(--accent);">DnD-Writing-workshop</a></div>
 </div>
 </div>
 </div>
@@ -820,7 +820,7 @@ function toast(msg,bg){const t=$('toastEl');t.style.background=bg||'#d32f2f';t.t
 function copyTxt(t){navigator.clipboard.writeText(t).then(()=>toast('已复制 ✓','#2e7d32'));}
 
 // ═══════════════════ THEME ═══════════════════
-let isDark=localStorage.getItem('crd_theme')!=='light';
+let isDark=localStorage.getItem('crd_theme')==='dark';
 if(!isDark)document.body.classList.add('light');
 function toggleTheme(){
   isDark=!isDark;
