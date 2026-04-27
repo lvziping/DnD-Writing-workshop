@@ -1483,8 +1483,8 @@ async function showSmartGreet(){
     var snippet=content;
     if(content.length>300){snippet=content.slice(-300);var sb=snippet.search(/[。！？\n]/);if(sb>0&&sb<60)snippet=snippet.slice(sb+1);}
     const msg=await callLLM(
-      ch.sys+'\n\n现在你路过写作者的桌旁，瞥见了他正在写的内容。请用1-2句话打招呼，可以根据内容给出鼓励、调侃、或小建议。保持角色特色，简短有趣，不超过30字。直接输出对话，中文。',
-      '写作者正在写的内容片段：\n'+snippet
+      ch.sys+'\n\n你路过写作者的桌旁，瞥见了对方正在写的内容。请直接对写作者说1-2句话打招呼（用"你"称呼对方），可以根据内容给出鼓励、调侃、或小建议。保持角色特色，简短有趣，不超过30字。直接输出对话，中文。',
+      '对方正在写的内容片段：\n'+snippet
     );
     $('greetText').textContent=ch.icon+' '+msg;
   }catch(e){
@@ -1523,7 +1523,7 @@ async function tellMeAStory(){
     const topic=STORY_TOPICS[ti];
     const advCtx=adv.prevNarr?'\n\n（如果你想关联也可以——当前冒险背景：'+adv.prevNarr+'）':'';
     const story=await callLLM(
-      ch.sys+'\n\n写作者想听你聊点什么。请用你的角色身份，'+topic+'。4-6句话，要有画面感和趣味性。保持角色说话风格。每次讲不同的内容，不要重复。中文。'+advCtx,
+      ch.sys+'\n\n对面的写作者想听你聊点什么。请用你的角色身份，直接对写作者说话（用"你"称呼对方），'+topic+'。4-6句话，要有画面感和趣味性。保持角色说话风格。每次讲不同的内容，不要重复。中文。'+advCtx,
       '请开始讲述'
     );
     $('greetText').textContent=ch.icon+' '+story;
@@ -1846,13 +1846,14 @@ function importBackup(){
   };
   inp.click();
 }
-function getAdvSnapshot(){return JSON.parse(JSON.stringify({turn:adv.turn,history:adv.history,active:adv.active,cooldownUntil:adv.cooldownUntil,prevNarr:adv.prevNarr,choices:adv.choices,allHistory:adv.allHistory,backstoryTitle:adv.backstoryTitle||'',archives:adv.archives||[]}));}
+function getAdvSnapshot(){return JSON.parse(JSON.stringify({turn:adv.turn,history:adv.history,active:adv.active,cooldownUntil:adv.cooldownUntil,prevNarr:adv.prevNarr,choices:adv.choices,allHistory:adv.allHistory,backstoryTitle:adv.backstoryTitle||'',backstoryText:adv.backstoryText||'',archives:adv.archives||[]}));}
 function restoreAdv(snap){
   const s=snap||{};
   adv.turn=s.turn||0;adv.history=s.history||[];adv.active=!!s.active;
   adv.cooldownUntil=s.cooldownUntil||0;adv.prevNarr=s.prevNarr||'';
   adv.choices=s.choices||[];adv.allHistory=s.allHistory||[];
   adv.backstoryTitle=s.backstoryTitle||'';
+  adv.backstoryText=s.backstoryText||'';
   adv.archives=s.archives||[];
   backstoryRevealed=!!adv.prevNarr;
   saveAdv();
@@ -1869,7 +1870,7 @@ function newProj(){
   const p={id:Date.now(),name,content:'',title:'',chars:0,date:new Date().toLocaleDateString('zh-CN'),chatHistory:{},advState:null};
   projects.push(p);curProjId=p.id;$('writerArea').value='';$('richEditor').innerHTML='';$('titleInput').value='';chatHist={};saveCH();saveWriting();saveTitle();saveProjects();
   // Reset adventure state for new document
-  adv={turn:0,maxTurns:5,history:[],narrative:'',active:false,cooldownUntil:0,prevNarr:'',choices:[],allHistory:[],backstoryTitle:'',archives:[]};backstoryRevealed=false;saveAdv();
+  adv={turn:0,maxTurns:5,history:[],narrative:'',active:false,cooldownUntil:0,prevNarr:'',choices:[],allHistory:[],backstoryTitle:'',backstoryText:'',archives:[]};backstoryRevealed=false;saveAdv();
   // Show opener banner again
   $('openerBanner').style.display='';$('openerResult').style.display='none';
   // Clear outline
@@ -1969,6 +1970,7 @@ async function genAdvBackstory(){
     // Save as backstory for adventure continuity
     if(!adv.prevNarr)adv.prevNarr=story;
     adv.backstoryTitle=title||'';
+    adv.backstoryText=story;
     backstoryRevealed=true;
     saveAdv();
   }catch(e){$('openerQuote').textContent='生成失败：'+e.message;setTimeout(()=>{$('openerResult').style.display='none';$('openerBanner').style.display='block';},2000);}
@@ -2004,16 +2006,16 @@ function extractJSON(text){
 }
 
 // ═══════════════════ ADVENTURE (D20) — with full save/restore ═══════════════════
-let adv={turn:0,maxTurns:5,history:[],narrative:'',active:false,cooldownUntil:0,prevNarr:'',choices:[],allHistory:[],backstoryTitle:'',archives:[]};
+let adv={turn:0,maxTurns:5,history:[],narrative:'',active:false,cooldownUntil:0,prevNarr:'',choices:[],allHistory:[],backstoryTitle:'',backstoryText:'',archives:[]};
 let advShowingFinalNarr=false;
-function saveAdv(){localStorage.setItem(ADV_K,JSON.stringify({turn:adv.turn,history:adv.history,active:adv.active,cooldownUntil:adv.cooldownUntil,prevNarr:adv.prevNarr,choices:adv.choices,allHistory:adv.allHistory,backstoryTitle:adv.backstoryTitle||''}));}
-function loadAdv(){try{const s=JSON.parse(localStorage.getItem(ADV_K)||'{}');if(s.turn!=null)adv.turn=s.turn;if(s.history)adv.history=s.history;if(s.active)adv.active=s.active;if(s.cooldownUntil)adv.cooldownUntil=s.cooldownUntil;if(s.prevNarr)adv.prevNarr=s.prevNarr;if(s.choices)adv.choices=s.choices;if(s.allHistory)adv.allHistory=s.allHistory;if(s.backstoryTitle)adv.backstoryTitle=s.backstoryTitle;backstoryRevealed=!!adv.prevNarr;}catch(e){}}
+function saveAdv(){localStorage.setItem(ADV_K,JSON.stringify({turn:adv.turn,history:adv.history,active:adv.active,cooldownUntil:adv.cooldownUntil,prevNarr:adv.prevNarr,choices:adv.choices,allHistory:adv.allHistory,backstoryTitle:adv.backstoryTitle||'',backstoryText:adv.backstoryText||''}));}
+function loadAdv(){try{const s=JSON.parse(localStorage.getItem(ADV_K)||'{}');if(s.turn!=null)adv.turn=s.turn;if(s.history)adv.history=s.history;if(s.active)adv.active=s.active;if(s.cooldownUntil)adv.cooldownUntil=s.cooldownUntil;if(s.prevNarr)adv.prevNarr=s.prevNarr;if(s.choices)adv.choices=s.choices;if(s.allHistory)adv.allHistory=s.allHistory;if(s.backstoryTitle)adv.backstoryTitle=s.backstoryTitle;if(s.backstoryText)adv.backstoryText=s.backstoryText;backstoryRevealed=!!adv.prevNarr;}catch(e){}}
 loadAdv();
 
-const ADV_START='你是经验丰富的D&D地下城主(DM)，风格幽默又刺激。基于用户写作主题，在被遗忘国度创造一个冒险遭遇。\n\n规则：\n1. 创造具体危机（怪物伏击、古代陷阱、政治阴谋等）\n2. 叙事4-5句，画面感+紧迫感，像DM桌边讲述\n3. 提供3个策略选择（战斗/潜行/外交/魔法等不同路线），每个选择附带一个难度值(dc)，范围5-18，要有难有易\n4. 中文\n\n【重要】你的回复必须是且仅是一个JSON对象，不要有任何其他文字、解释或markdown标记。格式：\n{"narrative":"叙事内容","choices":[{"text":"选择A","dc":10},{"text":"选择B","dc":6},{"text":"选择C","dc":15}]}';
+const ADV_START='你是经验丰富的D&D地下城主(DM)，风格幽默又刺激。基于用户写作主题，在被遗忘国度创造一个冒险遭遇。\n\n规则：\n1. 创造具体危机（怪物伏击、古代陷阱、政治阴谋等）\n2. 叙事4-5句，画面感+紧迫感，像DM桌边讲述\n3. 必须使用第二人称"你"来叙述（例如"你踏入洞穴…""你发现…"），让玩家有代入感\n4. 提供3个策略选择（战斗/潜行/外交/魔法等不同路线），每个选择附带一个难度值(dc)，范围5-18，要有难有易\n5. 中文\n\n【重要】你的回复必须是且仅是一个JSON对象，不要有任何其他文字、解释或markdown标记。格式：\n{"narrative":"叙事内容","choices":[{"text":"选择A","dc":10},{"text":"选择B","dc":6},{"text":"选择C","dc":15}]}';
 
 function getAdvContPrompt(turn){
-  return '你是D&D地下城主，继续推进冒险。\n\n之前的故事：{prev}\n玩家选择了：{choice}\nD20骰子：{roll}，难度判定(DC)：{dc}\n判定结果：{type}\n\n根据判定结果写出后果（2-3句），然后推进到新场景并提供3个新选择，每个选择附带难度值(dc)，范围5-18，有难有易。\n- 大失败(骰子=1)：无论DC，灾难性后果\n- 失败(骰子<DC)：行动失败，新困境\n- 成功(骰子>=DC)：顺利完成\n- 大成功(骰子=20)：无论DC，惊艳表现，意外收获\n\n这是第'+turn+'轮，共5轮。'+(turn>=5?'写一个悬念结尾，choices设为空数组[]。':'')+'\n\n【重要】你的回复必须是且仅是一个JSON对象，不要有任何其他文字、解释或markdown标记。格式：\n{"narrative":"后果描述+新场景","choices":[{"text":"选择A","dc":10},{"text":"选择B","dc":6},{"text":"选择C","dc":15}]}';
+  return '你是D&D地下城主，继续推进冒险。必须使用第二人称"你"来叙述。\n\n之前的故事：{prev}\n玩家选择了：{choice}\nD20骰子：{roll}，难度判定(DC)：{dc}\n判定结果：{type}\n\n根据判定结果写出后果（2-3句），然后推进到新场景并提供3个新选择，每个选择附带难度值(dc)，范围5-18，有难有易。\n- 大失败(骰子=1)：无论DC，灾难性后果\n- 失败(骰子<DC)：行动失败，新困境\n- 成功(骰子>=DC)：顺利完成\n- 大成功(骰子=20)：无论DC，惊艳表现，意外收获\n\n这是第'+turn+'轮，共5轮。'+(turn>=5?'写一个悬念结尾，choices设为空数组[]。':'')+'\n\n【重要】你的回复必须是且仅是一个JSON对象，不要有任何其他文字、解释或markdown标记。格式：\n{"narrative":"后果描述+新场景","choices":[{"text":"选择A","dc":10},{"text":"选择B","dc":6},{"text":"选择C","dc":15}]}';
 }
 
 // Open adventure in the right panel instead of modal
@@ -2059,6 +2061,7 @@ function renderAdvReadyInPanel(){
   if(chapters.length){
     h+='<div style="margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px;"><div style="font-size:.74rem;font-weight:600;color:var(--text-dim);margin-bottom:4px;">📜 冒险编年史</div>';
     if(adv.backstoryTitle)h+='<div style="font-size:.82rem;font-weight:700;color:var(--accent);margin-bottom:8px;text-align:center;">「'+esc(adv.backstoryTitle)+'」</div>';
+    if(adv.backstoryText)h+='<div style="font-size:.78rem;color:var(--text);line-height:1.7;font-family:\'Noto Serif SC\',serif;padding:8px 12px;background:transparent;border-radius:8px;border:1px dashed var(--accent);margin-bottom:10px;font-style:italic;opacity:.85;">'+esc(adv.backstoryText)+'</div>';
     chapters.forEach(function(ch,ci){
       const story=typeof ch==='object'&&ch.story?ch.story:(typeof ch==='string'?ch:ch.join('→'));
       const chTitle=typeof ch==='object'&&ch.title?' · '+esc(ch.title):'';
@@ -2145,12 +2148,12 @@ async function startAdventureInPanel(){
   const scroll=$('crdPanel').querySelector('.crd-scroll');
   const prevAllHistory=adv.allHistory||[];
   const prevNarrContext=adv.prevNarr||'';
-  adv={turn:0,maxTurns:5,history:[],narrative:'',active:true,cooldownUntil:0,prevNarr:'',choices:[],allHistory:prevAllHistory,backstoryTitle:adv.backstoryTitle||'',archives:adv.archives||[]};
+  adv={turn:0,maxTurns:5,history:[],narrative:'',active:true,cooldownUntil:0,prevNarr:'',choices:[],allHistory:prevAllHistory,backstoryTitle:adv.backstoryTitle||'',backstoryText:adv.backstoryText||'',archives:adv.archives||[]};
   saveAdv();
   scroll.innerHTML='<div style="padding:4px 0;"><div style="margin-bottom:10px;"><span style="font-size:.72rem;color:var(--text-dim);">回合 0/5</span></div><div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:12px;"></div><div class="adv-narr" id="advNarr"><div style="text-align:center;padding:20px 0;"><span class="spinner"></span> 冒险展开中…</div></div><div class="dice-display" id="diceDisplay" style="display:none;"><div class="dice-num" id="diceNum">20</div><div class="dice-label" id="diceLabel"></div></div><div class="adv-choices" id="advChoices"></div></div>';
   try{
     const wt=$('writerArea').value.trim();
-    const ctx=wt?(wt.length>300?wt.slice(0,300):wt):'（尚未开始写作）';
+    var ctx;if(!wt){ctx='（尚未开始写作）';}else if(wt.length<=400){ctx=wt;}else{var head=wt.slice(0,150);var tail=wt.slice(-250);var tb=tail.search(/[。！？\n]/);if(tb>0&&tb<60)tail=tail.slice(tb+1);ctx=head+'\n…（中间省略）…\n'+tail;}
     let advPrompt=ADV_START;
     if(prevNarrContext){advPrompt+='\n\n【前情提要】冒险者之前的故事：'+prevNarrContext+'\n请延续这个世界观，开启新的篇章。';}
     const r=await callLLM(advPrompt,'写作主题：\n'+ctx);
@@ -2238,7 +2241,7 @@ async function genChapterSummary(history,finalNarr){
   try{
     const choices=history.map(function(h,i){return'第'+(i+1)+'回合：'+h;}).join('\n');
     const raw=await callLLM(
-      '你是一位善于讲故事的奇幻叙述者。请把下面的D&D冒险记录改写成一段简洁生动的故事回顾（3-4句话），并为这一章取一个独特的小标题。\n\n要求：\n- 用第三人称"冒险者"叙述\n- 像给朋友讲述一段精彩经历那样——口语化、有画面感、节奏明快\n- 重点突出：冒险者做了什么、遭遇了什么、结果怎样\n- 避免过度修辞和生僻词汇，用简洁有力的动词和具体细节\n- 每句话都要推进情节，不要空洞抒情\n- 结尾一句话点明结局或悬念\n- 章节小标题要简短（2-8个字），能概括本章核心事件，不要与冒险主标题"'+(adv.backstoryTitle||'')+'"重复\n\n输出格式（严格遵守）：\n标题：（章节小标题）\n正文：（故事回顾）',
+      '你是一位善于讲故事的奇幻叙述者。请把下面的D&D冒险记录改写成一段简洁生动的故事回顾（3-4句话），并为这一章取一个独特的小标题。\n\n要求：\n- 用第二人称"你"叙述（例如"你踏入了…""你发现…"），让读者有身临其境的代入感\n- 像给朋友讲述一段精彩经历那样——口语化、有画面感、节奏明快\n- 重点突出：你做了什么、遭遇了什么、结果怎样\n- 避免过度修辞和生僻词汇，用简洁有力的动词和具体细节\n- 每句话都要推进情节，不要空洞抒情\n- 结尾一句话点明结局或悬念\n- 章节小标题要简短（2-8个字），能概括本章核心事件，不要与冒险主标题"'+(adv.backstoryTitle||'')+'"重复\n\n输出格式（严格遵守）：\n标题：（章节小标题）\n正文：（故事回顾）',
       '冒险行动记录：\n'+choices+(finalNarr?'\n\n最终结局：'+finalNarr:'')
     );
     if(!adv.allHistory)adv.allHistory=[];
@@ -2246,8 +2249,8 @@ async function genChapterSummary(history,finalNarr){
     var chStory=raw;
     var tm=raw.match(/标题[：:]\s*(.+)/);
     var sm=raw.match(/正文[：:]\s*([\s\S]+)/);
-    if(tm&&sm){chTitle=tm[1].trim().replace(/^[「【《]/,'').replace(/[」】》]$/,'');chStory=sm[1].trim();}
-    else{var lm=raw.match(/^(.+)\n+([\s\S]+)/);if(lm&&lm[1].length<=20){chTitle=lm[1].trim();chStory=lm[2].trim();}}
+    if(tm&&sm){chTitle=tm[1].trim().replace(/^[「【《]/,'').replace(/[」】》]$/,'').replace(/^标题[：:]\s*/,'');chStory=sm[1].trim();}
+    else{var lm=raw.match(/^(.+)\n+([\s\S]+)/);if(lm&&lm[1].length<=20){chTitle=lm[1].trim().replace(/^标题[：:]\s*/,'');chStory=lm[2].trim();}}
     adv.allHistory.push({title:chTitle,story:chStory});
     saveAdv();
     // If cooldown screen is showing (and not blocked by final narrative), refresh it
@@ -2317,7 +2320,8 @@ async function getCdDialogue(charKey){
   if(!story||!getCfg().key)return null;
   const ch=CHARS[charKey];
   if(!ch)return null;
-  const prompt=ch.sys+'\n\n你们刚结束了一场冒险，现在围坐在篝火旁休息。请基于下面这段冒险故事，用你的角色性格发表一段感想、评论或回忆（1-3句话，不超过60字）。可以是对某个细节的感慨、对同伴的调侃、对危险的后怕、或是对胜利的喜悦。要有角色特色，像是在篝火旁闲聊。直接说话，不要加引号或角色名前缀。';
+  const campfireRole='你是"'+ch.name.split('·')[0].trim()+'"，一位冒险队伍中的同伴。';
+  const prompt=campfireRole+'\n\n你们刚结束了一场冒险，现在围坐在篝火旁休息。请基于下面这段冒险故事的情节内容，用你的角色性格直接对身边的冒险同伴说话（用"你"称呼对方），发表一段感想、评论或回忆（1-3句话，不超过60字）。\n\n【重要】你是在讨论冒险经历本身（战斗、探索、遭遇、抉择等），而不是在评价对方的写作技巧或文笔。你们是一起经历了这场冒险的伙伴，聊的是刚才发生的事。可以是对某个冒险细节的感慨、对同伴表现的调侃、对危险的后怕、或是对胜利的喜悦。要有角色特色，像是在篝火旁闲聊。直接说话，不要加引号或角色名前缀。';
   try{
     const result=await callLLM(prompt,'刚才的冒险故事：\n'+story);
     cdDialogueCache[charKey]=result;
@@ -2354,6 +2358,7 @@ function renderAdvCooldownInPanel(){
   if(chapters.length){
     h+='<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px;"><div style="font-size:.74rem;font-weight:600;color:var(--text-dim);margin-bottom:4px;">📜 冒险编年史</div>';
     if(adv.backstoryTitle)h+='<div style="font-size:.82rem;font-weight:700;color:var(--accent);margin-bottom:8px;text-align:center;">「'+esc(adv.backstoryTitle)+'」</div>';
+    if(adv.backstoryText)h+='<div style="font-size:.78rem;color:var(--text);line-height:1.7;font-family:\'Noto Serif SC\',serif;padding:8px 12px;background:transparent;border-radius:8px;border:1px dashed var(--accent);margin-bottom:10px;font-style:italic;opacity:.85;">'+esc(adv.backstoryText)+'</div>';
     chapters.forEach(function(ch,ci){
       const story=typeof ch==='object'&&ch.story?ch.story:(typeof ch==='string'?ch:ch.join('→'));
       const chTitle=typeof ch==='object'&&ch.title?' · '+esc(ch.title):'';
@@ -2419,7 +2424,7 @@ function renderAdvCooldownInPanel(){
     if(timerEl)timerEl.textContent=m+':'+String(s).padStart(2,'0');
     const btnEl=$('cdNewAdvBtn');
     if(btnEl&&rem<=0&&!btnEl.innerHTML){
-      btnEl.innerHTML='<div class="adv-choice" style="margin-top:12px;" onclick="startAdventureInPanel()">⚔️ 开始新冒险</div>'+((adv.allHistory&&adv.allHistory.length)?'<div class="adv-choice" style="opacity:.85;" onclick="finishAdventure()">🏆 结局</div>':'');
+      btnEl.innerHTML='<div class="adv-choice" style="margin-top:12px;" onclick="startAdventureInPanel()">⚔️ 开始新冒险</div>';
     }
     if(rem>0&&$('crdPanel').dataset.mode==='adv')setTimeout(tick,1000);
   }
@@ -2446,7 +2451,7 @@ async function finishWriting(){
     const r=await callLLM('你是D&D地下城主。根据写作内容和冒险选择写一个精彩结局，和写作主题呼应，3-5句，画面感+仪式感。直接输出，中文。','【写作】\n'+ctx+'\n\n【冒险选择】\n'+ah.map((h,i)=>'第'+(i+1)+'次：'+h).join('\n'));
     $('advModal').querySelector('.adv-narr').innerHTML='';
     $('advModal').querySelector('.adv-choices').innerHTML='<div class="adv-ending"><h3>🏆 冒险结局</h3><p>'+esc(r)+'</p></div><div class="adv-choice" style="margin-top:10px;" onclick="closeAdv()">✨ 完美！回到现实</div>';
-    adv={turn:0,maxTurns:5,history:[],narrative:'',active:false,cooldownUntil:0,prevNarr:'',choices:[],allHistory:adv.allHistory||[],backstoryTitle:adv.backstoryTitle||'',archives:adv.archives||[]};
+    adv={turn:0,maxTurns:5,history:[],narrative:'',active:false,cooldownUntil:0,prevNarr:'',choices:[],allHistory:adv.allHistory||[],backstoryTitle:adv.backstoryTitle||'',backstoryText:adv.backstoryText||'',archives:adv.archives||[]};
     saveAdv();
   }catch(e){$('advModal').querySelector('.adv-narr').textContent='结局失败：'+e.message;}
 }
@@ -2474,7 +2479,7 @@ async function finishAdventure(){
       else if(wc<500)quality='\n\n【写作完成度：较低（200-500字）】冒险者的故事刚有雏形就匆匆结尾。请写一个带有遗憾但有希望的结局——虽然还有很多故事没有讲完，但冒险者已经迈出了重要的一步，未来还有很长的路要走。';
       else if(wc<1500)quality='\n\n【写作完成度：中等（500-1500字）】冒险者的故事已经有了一定的篇幅和深度。请写一个不错的结局——冒险有收获有成长，但还有一些悬念和可以探索的空间。整体基调积极。';
       else quality='\n\n【写作完成度：高（1500字以上）】冒险者投入了大量心血书写了一个丰富的故事。请写一个精彩圆满的结局——回顾旅程的精彩瞬间，给予冒险者应有的荣耀和满足感，用最华丽的笔触为这段传奇画上完美句号。';
-      return '你是一位优秀的奇幻史诗叙述者。请根据以下冒险编年史，写一段完整的冒险结局（5-8句话）。\n要求：\n- 回顾整段冒险旅程的高光和转折\n- 给冒险者一个与写作投入程度相称的结尾\n- 风格类似《指环王》结尾旁白，通俗但有画面感\n- 直接输出结局文字，中文'+quality;
+      return '你是一位优秀的奇幻史诗叙述者。请根据以下冒险编年史，写一段完整的冒险结局（5-8句话）。\n要求：\n- 使用第二人称"你"叙述，让玩家有身临其境的代入感\n- 回顾整段冒险旅程的高光和转折\n- 给你一个与写作投入程度相称的结尾\n- 风格类似《指环王》结尾旁白，通俗但有画面感\n- 直接输出结局文字，中文'+quality;
       })(),
       '冒险编年史：\n'+allStories
     );
@@ -2483,13 +2488,14 @@ async function finishAdventure(){
       date:new Date().toLocaleDateString('zh-CN'),
       chapters:JSON.parse(JSON.stringify(chapters)),
       finale:r,
-      backstoryTitle:adv.backstoryTitle||''
+      backstoryTitle:adv.backstoryTitle||'',
+      backstoryText:adv.backstoryText||''
     };
     if(!adv.archives)adv.archives=[];
     adv.archives.push(archive);
     // Reset current adventure (keep archives)
     adv.turn=0;adv.history=[];adv.active=false;adv.cooldownUntil=0;
-    adv.prevNarr='';adv.choices=[];adv.allHistory=[];adv.backstoryTitle='';
+    adv.prevNarr='';adv.choices=[];adv.allHistory=[];adv.backstoryTitle='';adv.backstoryText='';
     backstoryRevealed=false;
     saveAdv();
     // Show finale in panel
@@ -2668,7 +2674,7 @@ function splashNewStory(){
   autoSaveCur();
   const p={id:Date.now(),name,content:'',title:'',chars:0,date:new Date().toLocaleDateString('zh-CN'),chatHistory:{},advState:null};
   projects.push(p);curProjId=p.id;$('writerArea').value='';$('richEditor').innerHTML='';$('titleInput').value='';chatHist={};saveCH();saveWriting();saveTitle();saveProjects();
-  adv={turn:0,maxTurns:5,history:[],narrative:'',active:false,cooldownUntil:0,prevNarr:'',choices:[],allHistory:[],backstoryTitle:'',archives:[]};backstoryRevealed=false;saveAdv();
+  adv={turn:0,maxTurns:5,history:[],narrative:'',active:false,cooldownUntil:0,prevNarr:'',choices:[],allHistory:[],backstoryTitle:'',backstoryText:'',archives:[]};backstoryRevealed=false;saveAdv();
   $('openerBanner').style.display='';$('openerResult').style.display='none';
   updateOutline();
   $('footProj').textContent='📜 '+name;$('titleMeta').textContent='📜 '+name;renderChat();updateStats();
