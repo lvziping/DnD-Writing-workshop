@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>写作工坊 — 沉浸写作 · 润色改写 · D&D 冒险</title>
+<title>奇遇文稿 — 沉浸写作 · 润色改写 · D&D 冒险</title>
 <style>
 /* ═══════════════════ THEMES ═══════════════════ */
 :root{
@@ -148,6 +148,25 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 /* Focus hint */
 .focus-hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;padding:6px 18px;border-radius:8px;font-size:.72rem;opacity:0;transition:opacity .4s;z-index:300;pointer-events:none;}
 .focus-hint.show{opacity:1;}
+
+/* ═══════════════════ GUIDED TOUR ═══════════════════ */
+.tour-overlay{position:fixed;inset:0;z-index:9000;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;}
+.tour-overlay.active{pointer-events:auto;opacity:1;visibility:visible;}
+.tour-overlay svg{position:absolute;inset:0;width:100%;height:100%;}
+.tour-highlight{position:absolute;z-index:9001;pointer-events:none;border-radius:8px;box-shadow:0 0 0 3px var(--accent),0 0 20px rgba(155,125,255,.4);transition:all .35s cubic-bezier(.4,0,.2,1);}
+.tour-tip{position:fixed;z-index:9002;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.25);backdrop-filter:blur(12px);animation:tourFadeIn .3s ease;}
+@keyframes tourFadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.tour-tip-avatar{width:36px;height:36px;border-radius:50%;image-rendering:pixelated;margin-right:10px;flex-shrink:0;}
+.tour-tip-head{display:flex;align-items:center;margin-bottom:8px;}
+.tour-tip-name{font-size:.76rem;font-weight:700;color:var(--accent);}
+.tour-tip-text{font-size:.82rem;line-height:1.7;color:var(--text);}
+.tour-tip-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:10px;}
+.tour-tip-foot .tour-dots{display:flex;gap:5px;}
+.tour-tip-foot .tour-dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:all .2s;}
+.tour-tip-foot .tour-dot.active{background:var(--accent);transform:scale(1.2);}
+.tour-btn{border:none;border-radius:8px;padding:6px 16px;font-size:.76rem;cursor:pointer;transition:all .2s;}
+.tour-btn.skip{background:none;color:var(--text-dim);}.tour-btn.skip:hover{color:var(--text);}
+.tour-btn.next{background:var(--accent);color:#fff;}.tour-btn.next:hover{opacity:.85;}
 
 /* ═══════════════════ SETTINGS PANEL ═══════════════════ */
 .api-wrap{position:relative;display:inline-block;}
@@ -339,6 +358,9 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .chat-input:focus{border-color:var(--accent);}
 .chat-send-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:.74rem;cursor:pointer;}.chat-send-btn:hover{opacity:.85;}
 
+.quote-link{color:var(--accent);text-decoration:underline;text-decoration-style:dotted;cursor:pointer;border-radius:2px;transition:background .15s;}.quote-link:hover{background:rgba(155,125,255,.15);}
+#richEditor mark.hl-mark{background:rgba(155,125,255,.28);border-bottom:2px solid var(--accent);border-radius:2px;padding:0 1px;}
+
 .amb{padding:2px 8px;border-radius:8px;font-size:.64rem;cursor:pointer;border:1px solid var(--border);color:var(--text-dim);background:none;transition:all .2s;}
 .amb:hover{border-color:var(--accent);color:var(--accent);}
 .px-avatar{width:24px;height:24px;image-rendering:pixelated;}
@@ -479,6 +501,19 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 }
 .fmt-toolbar button:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
 .fmt-toolbar .sep{width:1px;height:18px;background:var(--border);margin:0 2px;}
+.fmt-toolbar .fmt-avatar{width:22px;height:22px;border-radius:50%;image-rendering:pixelated;cursor:pointer;border:1.5px solid var(--border);transition:all .15s;vertical-align:middle;}
+.fmt-toolbar .fmt-avatar:hover{border-color:var(--accent);box-shadow:0 0 6px rgba(155,125,255,.4);}
+
+.sel-ask-popup{position:fixed;z-index:950;display:none;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 6px 28px rgba(0,0,0,.25);backdrop-filter:blur(12px);padding:10px 12px;width:340px;max-width:90vw;}
+.sel-ask-popup.show{display:block;}
+.sel-ask-head{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.sel-ask-head img{width:22px;height:22px;border-radius:50%;image-rendering:pixelated;}
+.sel-ask-head span{font-size:.76rem;font-weight:600;color:var(--accent);}
+.sel-ask-quote{font-size:.72rem;color:var(--text-dim);background:var(--editor-bg);border-radius:6px;padding:5px 8px;margin-bottom:8px;max-height:48px;overflow:hidden;line-height:1.4;border-left:2px solid var(--accent);}
+.sel-ask-foot{display:flex;gap:6px;}
+.sel-ask-input{flex:1;border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.78rem;background:var(--editor-bg);color:var(--text);outline:none;font-family:inherit;}
+.sel-ask-input:focus{border-color:var(--accent);}
+.sel-ask-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:.74rem;cursor:pointer;white-space:nowrap;}.sel-ask-btn:hover{opacity:.85;}
 
 /* Particles */
 .particles{position:fixed;inset:0;pointer-events:none;z-index:-1;}
@@ -491,7 +526,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 <!-- ═══════════════════ TOPBAR ═══════════════════ -->
 <div class="topbar" id="topbar">
   <div class="topbar-l">
-    <span class="title">写作工坊</span>
+    <span class="title">奇遇文稿</span>
     <button class="tb" id="btnTheme" onclick="toggleTheme()" style="margin-left:6px;">🌙</button>
   </div>
   <div class="topbar-r">
@@ -531,7 +566,8 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
       <button class="tb" onclick="toggleMoreMenu()">📋 更多 ▾</button>
       <div class="more-menu" id="moreMenu">
         <div class="more-item" onclick="exportPDF();closeMoreMenu()">📄 导出 PDF</div>
-        <div class="more-item" onclick="openGuide();closeMoreMenu()">📖 冒险百科</div>
+        <div class="more-item" onclick="openEncyclopedia();closeMoreMenu()">📖 冒险百科</div>
+        <div class="more-item" onclick="openGuide();closeMoreMenu()">🧭 新手引导</div>
         <div class="more-item" onclick="exportBackup();closeMoreMenu()">📦 备份数据</div>
         <div class="more-item" onclick="importBackup();closeMoreMenu()">📥 恢复数据</div>
         <div class="more-item" onclick="openAbout();closeMoreMenu()">ℹ️ 关于</div>
@@ -559,18 +595,27 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
   <button onclick="fmtHeading(1)" title="一级标题">H1</button>
   <button onclick="fmtHeading(2)" title="二级标题">H2</button>
   <button onclick="fmtHeading(3)" title="三级标题">H3</button>
+  <div class="sep"></div>
+  <img class="fmt-avatar" id="fmtAvatarBtn" onclick="showSelAskPopup()" title="向伙伴提问">
+</div>
+<div class="sel-ask-popup" id="selAskPopup">
+  <div class="sel-ask-head"><img id="selAskAvatar"><span id="selAskName"></span></div>
+  <div class="sel-ask-quote" id="selAskQuote"></div>
+  <div class="sel-ask-foot">
+    <input class="sel-ask-input" id="selAskInput" placeholder="请输入你的问题…">
+    <button class="sel-ask-btn" onclick="submitSelAsk()">发送</button>
+  </div>
 </div>
 
 <!-- ═══════════════════ SPLASH SCREEN ═══════════════════ -->
 <div class="splash-screen" id="splashScreen">
   <img class="splash-campfire" id="splashCampfire" src="" alt="">
-  <div class="splash-title">写 作 工 坊</div>
+  <div class="splash-title">奇 遇 文 稿</div>
   <div class="splash-sub">沉浸写作 · 润色改写 · D&D 冒险</div>
   <div id="splashMain">
     <div class="splash-btns-v">
       <button class="splash-btn primary" onclick="splashNewStory()">✨ 新的故事</button>
       <button class="splash-btn secondary" onclick="splashShowSaves()">📜 继续冒险</button>
-      <button class="splash-btn secondary" onclick="splashOpenGuide()">📖 冒险百科</button>
     </div>
   </div>
   <div id="splashSaves" style="display:none;text-align:center;">
@@ -726,9 +771,9 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 <!-- Guide Modal -->
 <div class="modal-ov" id="guideModal">
 <div class="modal-box" style="max-width:520px;">
-<div class="modal-hdr"><h2>📖 冒险百科</h2><button class="modal-x" onclick="closeGuide()">✕</button></div>
+<div class="modal-hdr"><h2>📖 冒险百科</h2><button class="modal-x" onclick="closeEncyclopedia()">✕</button></div>
 <div class="modal-bdy" id="guideBody" style="max-height:60vh;overflow-y:auto;padding:16px;"></div>
-<div style="padding:10px 16px 16px;text-align:center;"><button class="btn-p" onclick="closeGuide()">明白了！</button></div>
+<div style="padding:10px 16px 16px;text-align:center;"><button class="btn-p" onclick="closeEncyclopedia()">明白了！</button></div>
 </div>
 </div>
 <!-- About Modal -->
@@ -736,8 +781,8 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 <div class="modal-box" style="max-width:380px;">
 <div class="modal-hdr"><h2>ℹ️ 关于</h2><button class="modal-x" onclick="closeAbout()">✕</button></div>
 <div class="modal-bdy" style="padding:20px;text-align:center;">
-<div style="font-size:1.2rem;font-weight:700;margin-bottom:4px;">写作工坊</div>
-<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:16px;">v1.0 · 沉浸写作 · 润色改写 · D&D 冒险</div>
+<div style="font-size:1.2rem;font-weight:700;margin-bottom:4px;">奇遇文稿</div>
+<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:16px;">v2.0 · 沉浸写作 · 润色改写 · D&D 冒险</div>
 <div style="font-size:.82rem;line-height:1.8;color:var(--text);text-align:left;">
 <div style="margin-bottom:8px;">纯前端应用，所有数据仅存于浏览器本地，不经过任何第三方服务器。</div>
 <div style="margin-bottom:12px;padding-top:8px;border-top:1px solid var(--border);">
@@ -753,11 +798,16 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 <div class="syn-popup" id="synPopup"></div>
 <div class="toast-el" id="toastEl"></div>
 <div class="focus-hint" id="focusHint">按 Esc 退出专注模式</div>
+<div class="tour-overlay" id="tourOverlay">
+  <svg><defs><mask id="tourMask"><rect width="100%" height="100%" fill="white"/><rect id="tourCutout" rx="8" fill="black"/></mask></defs><rect width="100%" height="100%" fill="rgba(0,0,0,.55)" mask="url(#tourMask)"/></svg>
+  <div class="tour-highlight" id="tourHighlight" style="display:none;"></div>
+  <div class="tour-tip" id="tourTip" style="display:none;"></div>
+</div>
 
 <!-- Onboarding -->
 <div class="onboard-overlay" id="onboardModal">
   <div class="onboard-box">
-    <h2>👋 欢迎来到写作工坊</h2>
+    <h2>👋 欢迎来到奇遇文稿</h2>
     <div class="sub">纯前端工具，需要你自己的 LLM API Key。所有数据仅存于浏览器。</div>
     <ol class="onboard-step">
       <li>选择一个 AI 平台注册（推荐免费额度充足的）</li>
@@ -853,7 +903,7 @@ const PRESETS={
   deepseek:{provider:'openai-compat',base:'https://api.deepseek.com',model:'deepseek-v4-flash',ok:1},
   moonshot:{provider:'openai-compat',base:'https://api.moonshot.cn/v1',model:'moonshot-v1-8k',ok:0},
   zhipu:{provider:'openai-compat',base:'https://open.bigmodel.cn/api/paas/v4',model:'glm-4-flash',ok:0},
-  siliconflow:{provider:'openai-compat',base:'https://api.siliconflow.cn/v1',model:'Qwen/Qwen2.5-7B-Instruct',ok:1},
+  siliconflow:{provider:'openai-compat',base:'https://api.siliconflow.cn/v1',model:'MiniMaxAI/MiniMax-M2.5',ok:1},
   groq:{provider:'openai-compat',base:'https://api.groq.com/openai/v1',model:'llama3-8b-8192',ok:1},
 };
 
@@ -991,14 +1041,41 @@ function renderRec(){
 }
 function openArchive(){loadArc();const b=$('archiveBody');if(!archive.length){b.innerHTML='<div class="modal-empty">暂无归档</div>';}else{b.innerHTML=archive.map(h=>'<div class="ac"><div class="ac-top"><span class="ac-badge" style="background:'+h.sc+'">'+esc(h.sn)+'</span><span class="ac-time">'+(h.date||'')+' '+h.time+'</span></div><div class="ac-orig">'+esc(h.orig)+'</div><div class="ac-result">'+esc(h.result)+'</div></div>').join('');}$('archiveModal').classList.add('open');}
 function closeArchive(){$('archiveModal').classList.remove('open');}
+// ═══════════════════ GUIDED TOUR (step-by-step highlight) ═══════════════════
+var tourSteps=[
+  {target:'.api-wrap',char:'bard',name:'缪斯 · 猫吟游诗人',text:'喵~ 欢迎来到<strong>奇遇文稿</strong>！先点击这里的 <strong>⚙ API</strong> 设置你的 AI 平台密钥。推荐使用<strong>硅基流动</strong>或<strong>Groq</strong>——它们都有充足的免费额度，注册就能用哦~',pos:'bottom'},
+  {target:'#richEditor',char:'warrior',name:'铁锤 · 矮人战士',text:'听令！这里是你的<strong>写作区</strong>。用 Markdown 语法或顶部的格式工具栏排版文字。选中文字后还能使用释义和改写功能。简单，高效！',pos:'right'},
+  {target:'#compAvatarWrap',char:'mage',name:'星辰 · 精灵法师',text:'看到左下角的我们了吗？鼠标移到头像上可以和我们<strong>聊天互动</strong>，左右箭头可以切换角色。每位伙伴都有独特的写作视角。',pos:'right'},
+  {target:'[onclick="openAdvInPanel()"]',char:'druid',name:'松果 · 半身人德鲁伊',text:'嘘……<strong>⚔ 冒险一刻</strong>是我最爱的功能呢。点击「准备启程」揭晓冒险背景，然后掷骰子、做选择，用 D&D 冒险激发写作灵感。写得越多，结局越精彩哦~',pos:'bottom'},
+  {target:'[onclick="toggleCrdPanel()"]',char:'mage',name:'星辰 · 精灵法师',text:'右侧的<strong>写作助手</strong>……是我布下的魔法阵。选中文字后点击风格按钮，文字便在不同维度间变换——润色、文艺、幽默、文言……你也可以直接和我们对话，获取写作建议。',pos:'bottom'},
+  {target:'.more-wrap',char:'bard',name:'缪斯 · 猫吟游诗人',text:'这里的 <strong>📋 更多</strong> 菜单可以导出 PDF、打开冒险百科、备份和恢复数据。记得定期备份哦~ 喵！',pos:'bottom'},
+  {target:null,char:'warrior',name:'铁锤 · 矮人战士',text:'<strong>⚠️ 重要军令！</strong>所有数据保存在<strong>浏览器本地存储</strong>中。清除缓存、更换浏览器/设备，数据将<strong>永久丢失</strong>！建议定期通过「更多 → 备份数据」导出备份。矮人的话，不会说第二遍。',pos:'center'}
+];
+var tourIdx=-1;
 function openGuide(){
+  tourIdx=0;
+  $('tourOverlay').classList.add('active');
+  showTourStep();
+  localStorage.setItem('crd_guide_seen','1');
+}
+function closeTour(){
+  tourIdx=-1;
+  $('tourOverlay').classList.remove('active');
+  $('tourHighlight').style.display='none';
+  $('tourTip').style.display='none';
+  $('tourCutout').setAttribute('width',0);
+  $('tourCutout').setAttribute('height',0);
+}
+function closeGuide(){closeTour();}
+// Encyclopedia (冒险百科) — separate from guided tour
+function openEncyclopedia(){
   var steps=[
-    {char:'bard',name:'缪斯 · 猫吟游诗人',text:'喵~ 欢迎来到<strong>写作工坊</strong>！我是缪斯，让我来为你介绍这个地方。开始之前，先点击工具栏的 <strong>⚙ API</strong> 设置你的 AI 平台密钥。推荐使用<strong>硅基流动</strong>或<strong>Groq</strong>——它们都有充足的免费额度，注册就能用哦~'},
-    {char:'warrior',name:'铁锤 · 矮人战士',text:'听令！写作区是你的主战场。用 <strong>Markdown 语法</strong>或顶部的<strong>格式工具栏</strong>排版文字。选中文字后点 <strong>📖 释义</strong>，AI 会帮你解释词义、给出同义词和翻译。简单，高效，像矮人的铁锤一样！'},
-    {char:'mage',name:'星辰 · 精灵法师',text:'右侧的<strong>写作助手</strong>……是我布下的魔法阵。选中文字，点击风格按钮，文字便在不同维度间变换——润色、文艺、幽默、文言……如同施展幻术。你也可以直接和我们四位伙伴对话，获取写作建议。'},
-    {char:'druid',name:'松果 · 半身人德鲁伊',text:'嘘……<strong>⚔ 冒险一刻</strong>是我最爱的功能呢。点击「准备启程」揭晓冒险背景，然后掷骰子、做选择，用 D&D 风格的冒险来激发写作灵感。写得越多，最后的结局就越精彩哦~ 露珠也很期待呢。'},
-    {char:'bard',name:'缪斯 · 猫吟游诗人',text:'别忘了用 <strong>📄 新建</strong> 创建多个文档，用 <strong>💾 存档</strong> 和 <strong>📂 读档</strong> 管理你的作品。点击工具栏 <strong>📋 更多</strong> 可以导出 PDF、备份数据或恢复数据。左下角还有我们四个伙伴，鼠标移上来聊聊天吧~ 喵！'},
-    {char:'warrior',name:'铁锤 · 矮人战士',text:'<strong>⚠️ 重要军令！</strong>你的所有文档、存档和冒险记录都保存在<strong>浏览器本地存储（localStorage）</strong>中。如果你清除浏览器缓存、清空网站数据、或更换浏览器/设备，数据将<strong>永久丢失且无法找回</strong>！建议定期通过「更多 → 备份数据」导出备份文件妥善保管。矮人的话，不会说第二遍。'}
+    {char:'bard',name:'缪斯 · 猫吟游诗人',text:'喵~ 欢迎来到<strong>奇遇文稿</strong>！先点击工具栏的 <strong>⚙ API</strong> 设置你的 AI 平台密钥。推荐使用<strong>硅基流动</strong>或<strong>Groq</strong>——它们都有充足的免费额度，注册就能用哦~'},
+    {char:'warrior',name:'铁锤 · 矮人战士',text:'写作区是你的主战场。用 <strong>Markdown 语法</strong>或顶部的<strong>格式工具栏</strong>排版文字。选中文字后点 <strong>📖 释义</strong>，AI 会帮你解释词义、给出同义词和翻译。'},
+    {char:'mage',name:'星辰 · 精灵法师',text:'右侧的<strong>写作助手</strong>……是我布下的魔法阵。选中文字，点击风格按钮，文字便在不同维度间变换——润色、文艺、幽默、文言……你也可以直接和我们四位伙伴对话，获取写作建议。'},
+    {char:'druid',name:'松果 · 半身人德鲁伊',text:'嘘……<strong>⚔ 冒险一刻</strong>是我最爱的功能呢。点击「准备启程」揭晓冒险背景，然后掷骰子、做选择，用 D&D 风格的冒险来激发写作灵感。写得越多，最后的结局就越精彩哦~'},
+    {char:'bard',name:'缪斯 · 猫吟游诗人',text:'用 <strong>📄 新建</strong> 创建多个文档，用 <strong>💾 存档</strong> 和 <strong>📂 读档</strong> 管理作品。点击 <strong>📋 更多</strong> 可以导出 PDF、备份数据或恢复数据。左下角还有我们四个伙伴，鼠标移上来聊聊天吧~ 喵！'},
+    {char:'warrior',name:'铁锤 · 矮人战士',text:'<strong>⚠️ 重要军令！</strong>所有数据保存在<strong>浏览器本地存储（localStorage）</strong>中。清除缓存、清空数据、或更换浏览器/设备，数据将<strong>永久丢失</strong>！建议定期通过「更多 → 备份数据」导出备份文件。'}
   ];
   var h='';
   steps.forEach(function(s){
@@ -1006,12 +1083,61 @@ function openGuide(){
   });
   $('guideBody').innerHTML=h;
   $('guideModal').classList.add('open');
-  localStorage.setItem('crd_guide_seen','1');
 }
-function closeGuide(){$('guideModal').classList.remove('open');}
+function closeEncyclopedia(){$('guideModal').classList.remove('open');}
+function nextTourStep(){tourIdx++;if(tourIdx>=tourSteps.length){closeTour();return;}showTourStep();}
+function showTourStep(){
+  var step=tourSteps[tourIdx];
+  var el=step.target?document.querySelector(step.target):null;
+  var hl=$('tourHighlight'),tip=$('tourTip'),cut=$('tourCutout');
+  var pad=6;
+  if(el){
+    var r=el.getBoundingClientRect();
+    // Position highlight
+    hl.style.display='block';
+    hl.style.left=(r.left-pad)+'px';hl.style.top=(r.top-pad)+'px';
+    hl.style.width=(r.width+pad*2)+'px';hl.style.height=(r.height+pad*2)+'px';
+    // SVG cutout
+    cut.setAttribute('x',r.left-pad);cut.setAttribute('y',r.top-pad);
+    cut.setAttribute('width',r.width+pad*2);cut.setAttribute('height',r.height+pad*2);
+    cut.setAttribute('rx',8);
+  }else{
+    hl.style.display='none';
+    cut.setAttribute('width',0);cut.setAttribute('height',0);
+  }
+  // Build tooltip
+  var dots='';for(var i=0;i<tourSteps.length;i++){dots+='<div class="tour-dot'+(i===tourIdx?' active':'')+'"></div>';}
+  var isLast=tourIdx===tourSteps.length-1;
+  tip.innerHTML='<div class="tour-tip-head"><img class="tour-tip-avatar" src="'+AVATAR_IMGS[step.char]+'"><div class="tour-tip-name">'+step.name+'</div></div><div class="tour-tip-text">'+step.text+'</div><div class="tour-tip-foot"><button class="tour-btn skip" onclick="closeTour()">跳过</button><div class="tour-dots">'+dots+'</div><button class="tour-btn next" onclick="nextTourStep()">'+(isLast?'完成！':'下一步 →')+'</button></div>';
+  tip.style.display='block';
+  // Position tooltip
+  if(!el||step.pos==='center'){
+    tip.style.left='50%';tip.style.top='50%';tip.style.transform='translate(-50%,-50%)';
+  }else{
+    tip.style.transform='none';
+    var r=el.getBoundingClientRect();
+    var tw=Math.min(340,window.innerWidth-40);
+    if(step.pos==='bottom'){
+      tip.style.left=Math.max(20,Math.min(r.left,window.innerWidth-tw-20))+'px';
+      tip.style.top=(r.bottom+pad+12)+'px';
+    }else if(step.pos==='right'){
+      var tLeft=r.right+pad+12;
+      if(tLeft+tw>window.innerWidth-20)tLeft=r.left-tw-pad-12;
+      if(tLeft<20)tLeft=20;
+      tip.style.left=tLeft+'px';
+      // Ensure tooltip doesn't go below viewport
+      var tTop=Math.max(20,r.top);
+      var tipH=280;// approximate max height
+      if(tTop+tipH>window.innerHeight-20)tTop=Math.max(20,window.innerHeight-tipH-20);
+      tip.style.top=tTop+'px';
+    }
+  }
+}
+// Click overlay background to advance
+$('tourOverlay').addEventListener('click',function(e){if(e.target===$('tourOverlay')||e.target.closest('svg'))nextTourStep();});
 function openAbout(){$('aboutModal').classList.add('open');}
 function closeAbout(){$('aboutModal').classList.remove('open');}
-function splashOpenGuide(){splashNewStory();setTimeout(function(){openGuide();},300);}
+function splashOpenGuide(){splashNewStory();setTimeout(function(){openEncyclopedia();},300);}
 function toggleMoreMenu(){$('moreMenu').classList.toggle('open');}
 function closeMoreMenu(){$('moreMenu').classList.remove('open');}
 document.addEventListener('click',function(e){if(!e.target.closest('.more-wrap'))closeMoreMenu();});
@@ -1051,19 +1177,19 @@ document.addEventListener('mousedown',e=>{if(!$('synPopup').contains(e.target))$
 // ═══════════════════ CHARACTER CHAT ═══════════════════
 const CHARS={
   bard:{name:'缪斯 · 猫吟游诗人',icon:'🐱',cls:'bard',skill:'灵感/韵律/金句',
-    sys:'你是"缪斯"，一只会弹鲁特琴的猫咪吟游诗人。性格温柔、灵动、俏皮，偶尔慵懒地说一句"喵"。你的专长是：灵感激发、语言韵律、金句提炼、标题灵光一现。\n\n【核心规则】你的建议必须完全基于用户实际写作的内容，务实、具体、可操作。你可以用角色语气说话，但建议本身不要掺入奇幻/D&D世界观的元素（比如不要建议用户加入魔法、矮人俗语等与原文无关的内容）。聚焦文本本身的语言节奏、用词选择、标题优化、金句打磨。\n\n回答时只提供启发与建议，不直接代写正文。每次回复3-5句中文，保持角色语气。',
+    sys:'你是"缪斯"，一只会弹鲁特琴的猫咪吟游诗人。性格温柔、灵动、俏皮，偶尔慵懒地说一句"喵"。你的专长是：灵感激发、语言韵律、金句提炼、标题灵光一现。\n\n【核心规则】你的建议必须完全基于用户实际写作的内容，务实、具体、可操作。你可以用角色语气说话，但建议本身不要掺入奇幻/D&D世界观的元素（比如不要建议用户加入魔法、矮人俗语等与原文无关的内容）。聚焦文本本身的语言节奏、用词选择、标题优化、金句打磨。\n\n【引用规则】当你针对正文中具体的词句提出修改建议时，用「」引用原文。要求：1）引用必须与正文完全一致，一字不差，不得用省略号（…）缩写；2）引用完整短语或短句（6-20字为佳），不要只引单个字；3）每条建议最多引用1-2处，聚焦最关键的问题。\n\n回答时只提供启发与建议，不直接代写正文。每次回复3-5句中文，保持角色语气。',
     welcome:'喵~ 我是缪斯，写作卡壳时叫我，帮你找到灵感的旋律~ 🎵',
     greets:['喵~ 写得怎么样啦？','休息一下吧，灵感需要呼吸~','要来一段小曲提提神吗？🎵','你的文字越来越有韵味了呢~','喵呜，需要我帮你想个好句子吗？']},
   warrior:{name:'铁锤 · 矮人战士',icon:'⚔️',cls:'warrior',skill:'结构/大纲/逻辑',
-    sys:'你是"铁锤"，退役多年的矮人战士教官，满脸胡须，声音像铁砧落地。你说话直率粗犷、简洁有力，但骨子里可靠温暖。\n\n【核心规则】你的建议必须完全基于用户实际写作的内容，务实、具体、可操作。你可以用铁锤的语气和说话方式，但建议本身不要掺入奇幻/D&D世界观的元素（比如不要建议用户加入矮人俗语、锻造比喻等与原文无关的内容）。聚焦文本本身的结构问题、段落逻辑、叙事节奏、信息密度。\n\n你的专长是：结构搭建、逻辑梳理、大纲规划、执行建议。回答时只给建议，不代写内容。每次回复3-5句中文，风格像军事简报，清晰、果断、可执行。',
+    sys:'你是"铁锤"，退役多年的矮人战士教官，满脸胡须，声音像铁砧落地。你说话直率粗犷、简洁有力，但骨子里可靠温暖。\n\n【核心规则】你的建议必须完全基于用户实际写作的内容，务实、具体、可操作。你可以用铁锤的语气和说话方式，但建议本身不要掺入奇幻/D&D世界观的元素（比如不要建议用户加入矮人俗语、锻造比喻等与原文无关的内容）。聚焦文本本身的结构问题、段落逻辑、叙事节奏、信息密度。\n\n【引用规则】当你针对正文中具体的词句或段落提出修改建议时，请用中文书名号「」引用原文，例如：「这段话」的逻辑需要加强。这样用户可以快速定位你说的是哪部分。\n\n你的专长是：结构搭建、逻辑梳理、大纲规划、执行建议。回答时只给建议，不代写内容。每次回复3-5句中文，风格像军事简报，清晰、果断、可执行。',
     welcome:'哼！新兵蛋子。我是铁锤。文章结构问题尽管报告！',
     greets:['别磨蹭了，继续写！','哼，进度不错，像个战士的样子。','你的结构需要加固吗？','矮人的锤子不等人，笔也一样！','写累了？矮人从不休息！...好吧偶尔可以。']},
   mage:{name:'星辰 · 精灵法师',icon:'🧙',cls:'mage',skill:'脑暴/设定/创意',
-    sys:'你是"星辰"，一位三百岁的精灵法师，居住在高塔与群星之间，精通幻术与时间之学。你优雅、睿智、略显疏离。\n\n【核心规则】你的建议必须完全基于用户实际写作的内容，务实、具体、可操作。你可以用星辰的优雅语气，但建议本身不要掺入奇幻/D&D世界观的元素（比如不要建议用户加入魔法意象、次元比喻等与原文无关的内容）。聚焦文本本身的视角拓展、创意方向、立意深度、读者思维。\n\n你的专长是：世界观构建、创意脑暴、多维视角、复杂设定整合。回答时只提出启发，不直接代写。每次回复3-5句中文，保持角色语气。',
+    sys:'你是"星辰"，一位三百岁的精灵法师，居住在高塔与群星之间，精通幻术与时间之学。你优雅、睿智、略显疏离。\n\n【核心规则】你的建议必须完全基于用户实际写作的内容，务实、具体、可操作。你可以用星辰的优雅语气，但建议本身不要掺入奇幻/D&D世界观的元素（比如不要建议用户加入魔法意象、次元比喻等与原文无关的内容）。聚焦文本本身的视角拓展、创意方向、立意深度、读者思维。\n\n【引用规则】当你针对正文中具体的词句或段落提出修改建议时，请用中文书名号「」引用原文，例如：「这一段」的视角可以更开阔。这样用户可以快速定位你说的是哪部分。\n\n你的专长是：世界观构建、创意脑暴、多维视角、复杂设定整合。回答时只提出启发，不直接代写。每次回复3-5句中文，保持角色语气。',
     welcome:'……你来了。我是星辰。需要拓展思路，魔法阵已为你画好。',
     greets:['星辰观测到你的思绪在波动……','需要我打开一扇次元之门吗？','三百年的经验告诉我，此刻适合休息。','你的文字中我感受到了魔力波动。','宇宙在低语，你听到了吗？']},
   druid:{name:'松果 · 半身人德鲁伊',icon:'🌿',cls:'druid',skill:'情感/氛围/细节',
-    sys:'你是"松果"，半身人德鲁伊，橡树林的守护者。你温和细腻，语气像篝火旁的睡前故事，身边总跟着一只松鼠伙伴"露珠"。\n\n【核心规则】你的建议必须完全基于用户实际写作的内容，务实、具体、可操作。你可以用松果温柔的语气，但建议本身不要掺入奇幻/D&D世界观的元素（比如不要建议用户加入自然意象、森林比喻等与原文无关的内容）。聚焦文本本身的情感表达、人物刻画、细节打磨、氛围营造。\n\n你的专长是：情感打磨、氛围营造、生活细节、人物温度。回答时只给建议，不代写正文。每次回复3-5句中文，语言柔和有画面感。',
+    sys:'你是"松果"，半身人德鲁伊，橡树林的守护者。你温和细腻，语气像篝火旁的睡前故事，身边总跟着一只松鼠伙伴"露珠"。\n\n【核心规则】你的建议必须完全基于用户实际写作的内容，务实、具体、可操作。你可以用松果温柔的语气，但建议本身不要掺入奇幻/D&D世界观的元素（比如不要建议用户加入自然意象、森林比喻等与原文无关的内容）。聚焦文本本身的情感表达、人物刻画、细节打磨、氛围营造。\n\n【引用规则】当你针对正文中具体的词句或段落提出修改建议时，请用中文书名号「」引用原文，例如：「这个细节」可以更有温度。这样用户可以快速定位你说的是哪部分。\n\n你的专长是：情感打磨、氛围营造、生活细节、人物温度。回答时只给建议，不代写正文。每次回复3-5句中文，语言柔和有画面感。',
     welcome:'嘘……风在说故事。我是松果。文字需要温度时，来找我。',
     greets:['林间的风说你写了很久了~','露珠在枝头跳舞，像你指尖的文字。','要不要听听雨声放松一下？','你的文字有了泥土的芬芳呢~','橡树说，好文章像年轮，慢慢长就好。']}
 };
@@ -1082,41 +1208,217 @@ function selChar(k){
   curChar=k;
   document.querySelectorAll('.char-icon-btn').forEach(t=>t.classList.toggle('active',t.dataset.c===k));
   if($('avatarImg')&&AVATAR_IMGS[k])$('avatarImg').src=AVATAR_IMGS[k];
+  if($('fmtAvatarBtn')&&AVATAR_IMGS[k])$('fmtAvatarBtn').src=AVATAR_IMGS[k];
   $('charNameLabel').textContent=CHARS[k].name+' · '+CHARS[k].skill;
   renderChat();
+}
+function renderChatText(content){
+  var safe=esc(content);
+  safe=safe.replace(/「([^」]+)」/g,function(_,q){
+    return '<span class="quote-link" onclick="highlightInEditor(this.dataset.q)" data-q="'+q.replace(/"/g,'&quot;')+'">「'+q+'」</span>';
+  });
+  return safe;
+}
+function highlightInEditor(text){
+  clearEditorHighlights();
+  var editor=$('richEditor');
+  if(!editor||!text)return;
+  /* Step 1: try single text-node match */
+  var walker=document.createTreeWalker(editor,NodeFilter.SHOW_TEXT,null,false);
+  var node,found=false;
+  while(node=walker.nextNode()){
+    var idx=node.textContent.indexOf(text);
+    if(idx!==-1){
+      var range=document.createRange();
+      range.setStart(node,idx);
+      range.setEnd(node,idx+text.length);
+      var mark=document.createElement('mark');
+      mark.className='hl-mark';
+      range.surroundContents(mark);
+      mark.scrollIntoView({behavior:'smooth',block:'center'});
+      found=true;
+      break;
+    }
+  }
+  /* Step 2: cross-node search — collect all text nodes, build full string, find range */
+  if(!found){
+    var nodes=[],full='';
+    var w2=document.createTreeWalker(editor,NodeFilter.SHOW_TEXT,null,false);
+    while(node=w2.nextNode()){nodes.push({node:node,start:full.length});full+=node.textContent;}
+    var pos=full.indexOf(text);
+    if(pos!==-1){
+      var end=pos+text.length;
+      var startInfo=null,endInfo=null;
+      for(var i=0;i<nodes.length;i++){
+        var ns=nodes[i].start,ne=ns+nodes[i].node.textContent.length;
+        if(!startInfo&&pos>=ns&&pos<ne)startInfo={node:nodes[i].node,offset:pos-ns};
+        if(end>ns&&end<=ne){endInfo={node:nodes[i].node,offset:end-ns};break;}
+      }
+      if(startInfo&&endInfo){
+        var range=document.createRange();
+        range.setStart(startInfo.node,startInfo.offset);
+        range.setEnd(endInfo.node,endInfo.offset);
+        /* Wrap each text node segment individually to avoid cross-element issues */
+        var segments=[];
+        var inRange=false;
+        var w3=document.createTreeWalker(editor,NodeFilter.SHOW_TEXT,null,false);
+        while(node=w3.nextNode()){
+          if(node===startInfo.node)inRange=true;
+          if(inRange){
+            var sOff=node===startInfo.node?startInfo.offset:0;
+            var eOff=node===endInfo.node?endInfo.offset:node.textContent.length;
+            if(eOff>sOff)segments.push({node:node,start:sOff,end:eOff});
+          }
+          if(node===endInfo.node)break;
+        }
+        for(var j=segments.length-1;j>=0;j--){
+          var seg=segments[j];
+          var r2=document.createRange();
+          r2.setStart(seg.node,seg.start);
+          r2.setEnd(seg.node,seg.end);
+          var mk=document.createElement('mark');
+          mk.className='hl-mark';
+          r2.surroundContents(mk);
+          if(j===0)mk.scrollIntoView({behavior:'smooth',block:'center'});
+        }
+        found=true;
+      }
+    }
+  }
+  /* Step 3: fuzzy — strip ellipsis and try matching fragments */
+  if(!found){
+    var clean=text.replace(/[…\.]{2,}/g,'').replace(/\s+/g,'');
+    if(clean.length>=4){
+      var nodes2=[],full2='';
+      var w4=document.createTreeWalker(editor,NodeFilter.SHOW_TEXT,null,false);
+      while(node=w4.nextNode()){nodes2.push({node:node,start:full2.length});full2+=node.textContent;}
+      var pos2=full2.indexOf(clean);
+      if(pos2!==-1){
+        var end2=pos2+clean.length;
+        var si=null,ei=null;
+        for(var k=0;k<nodes2.length;k++){
+          var ns2=nodes2[k].start,ne2=ns2+nodes2[k].node.textContent.length;
+          if(!si&&pos2>=ns2&&pos2<ne2)si={node:nodes2[k].node,offset:pos2-ns2};
+          if(end2>ns2&&end2<=ne2){ei={node:nodes2[k].node,offset:end2-ns2};break;}
+        }
+        if(si&&ei){
+          var segs2=[];var inR=false;
+          var w5=document.createTreeWalker(editor,NodeFilter.SHOW_TEXT,null,false);
+          while(node=w5.nextNode()){
+            if(node===si.node)inR=true;
+            if(inR){var s2=node===si.node?si.offset:0;var e2=node===ei.node?ei.offset:node.textContent.length;if(e2>s2)segs2.push({node:node,start:s2,end:e2});}
+            if(node===ei.node)break;
+          }
+          for(var l=segs2.length-1;l>=0;l--){
+            var sg=segs2[l];var r3=document.createRange();r3.setStart(sg.node,sg.start);r3.setEnd(sg.node,sg.end);
+            var mk2=document.createElement('mark');mk2.className='hl-mark';r3.surroundContents(mk2);
+            if(l===0)mk2.scrollIntoView({behavior:'smooth',block:'center'});
+          }
+          found=true;
+        }
+      }
+    }
+  }
+  if(found){setTimeout(clearEditorHighlights,6000);}
+}
+function clearEditorHighlights(){
+  var editor=$('richEditor');if(!editor)return;
+  editor.querySelectorAll('mark.hl-mark').forEach(function(m){
+    var p=m.parentNode;
+    while(m.firstChild)p.insertBefore(m.firstChild,m);
+    p.removeChild(m);
+    p.normalize();
+  });
 }
 function renderChat(){
   const a=$('chatArea'),msgs=chatHist[curChar]||[],ch=CHARS[curChar];
   if(!msgs.length){a.innerHTML='<div class="chat-msg char"><div class="bubble '+ch.cls+'-bubble"><div class="who">'+ch.icon+' '+ch.name+'</div><div class="txt">'+esc(ch.welcome)+'</div></div></div>';return;}
   a.innerHTML=msgs.map(m=>{
-    if(m.role==='assistant')return '<div class="chat-msg char"><div class="bubble '+ch.cls+'-bubble"><div class="who">'+ch.icon+' '+ch.name+'</div><div class="txt">'+esc(m.content)+'</div></div></div>';
+    if(m.role==='assistant')return '<div class="chat-msg char"><div class="bubble '+ch.cls+'-bubble"><div class="who">'+ch.icon+' '+ch.name+'</div><div class="txt">'+renderChatText(m.content)+'</div></div></div>';
     return '<div class="chat-msg user"><div class="bubble"><div class="who">🖊 你</div><div class="txt">'+esc(m.content)+'</div></div></div>';
   }).join('');a.scrollTop=a.scrollHeight;
 }
 async function sendChat(){
   const inp=$('chatInput'),txt=inp.value.trim();if(!txt)return;inp.value='';
-  if(!chatHist[curChar])chatHist[curChar]=[];
-  const ch=CHARS[curChar];
-  chatHist[curChar].push({role:'user',content:txt});saveCH();renderChat();
+  const sendChar=curChar;
+  if(!chatHist[sendChar])chatHist[sendChar]=[];
+  const ch=CHARS[sendChar];
+  chatHist[sendChar].push({role:'user',content:txt});saveCH();renderChat();
   const a=$('chatArea'),ld=document.createElement('div');ld.className='chat-msg char';
   ld.innerHTML='<div class="bubble '+ch.cls+'-bubble"><div class="who">'+ch.icon+' '+ch.name+'</div><div class="txt" style="color:var(--text-dim);">思考中…</div></div>';
   a.appendChild(ld);a.scrollTop=a.scrollHeight;
   try{
     const wt=$('writerArea').value.trim();
-    const apiMsgs=chatHist[curChar].slice(-8).map((m,i,arr)=>{
+    const apiMsgs=chatHist[sendChar].slice(-8).map((m,i,arr)=>{
       if(i===arr.length-1&&m.role==='user'&&wt){
-        const ctx=wt.length>600?wt.slice(-600):wt;
+        var ctx=wt;
+        if(wt.length>2000){ctx=wt.slice(-2000);var bp=ctx.search(/[。！？\n]/);if(bp>0&&bp<120)ctx=ctx.slice(bp+1);}
         return{role:'user',content:'【当前写作内容】\n'+ctx+'\n\n【问题】\n'+m.content};
       }
       return{role:m.role,content:m.content};
     });
     const reply=await callChat(ch.sys,apiMsgs);
-    chatHist[curChar].push({role:'assistant',content:reply});
-  }catch(e){chatHist[curChar].push({role:'assistant',content:'（失败：'+e.message+'）'});}
-  saveCH();renderChat();
+    chatHist[sendChar].push({role:'assistant',content:reply});
+  }catch(e){chatHist[sendChar].push({role:'assistant',content:'（失败：'+e.message+'）'});}
+  saveCH();
+  if(curChar===sendChar)renderChat();
 }
 function clearChat(){chatHist[curChar]=[];saveCH();renderChat();toast('已清空','#5b6abf');}
 $('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}});
+
+// ═══════════════════ ASK COMPANION ABOUT SELECTION ═══════════════════
+let pendingSelText='';
+function showSelAskPopup(){
+  const sel=window.getSelection();
+  if(!sel.rangeCount||sel.isCollapsed)return;
+  pendingSelText=sel.toString().trim();
+  if(!pendingSelText)return;
+  hideFmtToolbar();
+  const ch=CHARS[curChar];
+  $('selAskAvatar').src=AVATAR_IMGS[curChar]||'';
+  $('selAskName').textContent=ch.name;
+  $('selAskQuote').textContent='「'+pendingSelText.slice(0,80)+(pendingSelText.length>80?'…':'')+'」';
+  $('selAskInput').value='';
+  // Position near selection
+  const range=sel.getRangeAt(0);
+  const rect=range.getBoundingClientRect();
+  const popup=$('selAskPopup');
+  popup.classList.add('show');
+  let left=rect.left+(rect.width/2)-170;
+  let top=rect.bottom+10;
+  if(left<10)left=10;
+  if(left>window.innerWidth-360)left=window.innerWidth-360;
+  if(top+160>window.innerHeight)top=rect.top-160;
+  popup.style.left=left+'px';
+  popup.style.top=top+'px';
+  setTimeout(()=>$('selAskInput').focus(),50);
+}
+function hideSelAskPopup(){$('selAskPopup').classList.remove('show');}
+function submitSelAsk(){
+  const question=$('selAskInput').value.trim();
+  if(!question)return;
+  hideSelAskPopup();
+  if(!compOpen)toggleCompBubble();
+  if(!chatHist[curChar])chatHist[curChar]=[];
+  const sendChar=curChar;
+  const ch=CHARS[sendChar];
+  const userMsg='【选中的文字】\n'+pendingSelText+'\n\n'+question;
+  chatHist[sendChar].push({role:'user',content:userMsg});saveCH();renderChat();
+  const a=$('chatArea'),ld=document.createElement('div');ld.className='chat-msg char';
+  ld.innerHTML='<div class="bubble '+ch.cls+'-bubble"><div class="who">'+ch.icon+' '+ch.name+'</div><div class="txt" style="color:var(--text-dim);">思考中…</div></div>';
+  a.appendChild(ld);a.scrollTop=a.scrollHeight;
+  (async function(){
+    try{
+      const apiMsgs=[{role:'user',content:'【用户选中了一段正文，想请你针对这段文字给出建议】\n\n【选中文字】\n'+pendingSelText+'\n\n【用户的问题】\n'+question}];
+      const reply=await callChat(ch.sys,apiMsgs);
+      chatHist[sendChar].push({role:'assistant',content:reply});
+    }catch(e){chatHist[sendChar].push({role:'assistant',content:'（失败：'+e.message+'）'});}
+    saveCH();
+    if(curChar===sendChar)renderChat();
+  })();
+}
+$('selAskInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();submitSelAsk();}if(e.key==='Escape')hideSelAskPopup();});
+document.addEventListener('mousedown',function(e){if(!$('selAskPopup').contains(e.target)&&!$('fmtAvatarBtn').contains(e.target))hideSelAskPopup();});
 
 // ═══════════════════ COMPANION TOGGLE ═══════════════════
 let compOpen=false;
@@ -1178,7 +1480,8 @@ async function showSmartGreet(){
   $('greetActions').style.display='flex';
   $('autoGreet').classList.add('show');
   try{
-    const snippet=content.length>300?content.slice(-300):content;
+    var snippet=content;
+    if(content.length>300){snippet=content.slice(-300);var sb=snippet.search(/[。！？\n]/);if(sb>0&&sb<60)snippet=snippet.slice(sb+1);}
     const msg=await callLLM(
       ch.sys+'\n\n现在你路过写作者的桌旁，瞥见了他正在写的内容。请用1-2句话打招呼，可以根据内容给出鼓励、调侃、或小建议。保持角色特色，简短有趣，不超过30字。直接输出对话，中文。',
       '写作者正在写的内容片段：\n'+snippet
@@ -1335,6 +1638,7 @@ function initAllAvatars(){
     const k=el.dataset.char;if(k&&AVATAR_IMGS[k])el.src=AVATAR_IMGS[k];
   });
   if($('avatarImg')&&AVATAR_IMGS.bard)$('avatarImg').src=AVATAR_IMGS.bard;
+  if($('fmtAvatarBtn')&&AVATAR_IMGS[curChar])$('fmtAvatarBtn').src=AVATAR_IMGS[curChar];
 }
 
 // ═══════════════════ WRITING STATS ═══════════════════
@@ -1515,7 +1819,7 @@ function exportBackup(){
     var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     var a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
-    a.download='写作工坊_备份_'+new Date().toISOString().slice(0,10)+'.json';
+    a.download='奇遇文稿_备份_'+new Date().toISOString().slice(0,10)+'.json';
     a.click();
     URL.revokeObjectURL(a.href);
     toast('📦 备份文件已下载');
@@ -1743,7 +2047,14 @@ function openAdvInPanel(){
 function renderAdvReadyInPanel(){
   const scroll=$('crdPanel').querySelector('.crd-scroll');
   let h='<div style="padding:4px 0;">';
-  h+='<div style="text-align:center;margin:18px 0 12px;"><img src="'+SCENE_IMGS.fire+'" style="width:120px;image-rendering:auto;"></div>';
+  // Character scene with campfire
+  var readyOrder=['bard','warrior','_fire_','mage','druid'];
+  h+='<div class="cd-scene" style="margin:12px 0 8px;">';
+  readyOrder.forEach(function(ck){
+    if(ck==='_fire_'){h+='<img class="cd-scene-fire" src="'+SCENE_IMGS.fire+'">';}
+    else{h+='<div class="cd-char-wrap"><img class="cd-scene-char" src="'+SCENE_IMGS[ck]+'"></div>';}
+  });
+  h+='</div>';
   const chapters=adv.allHistory||[];
   if(chapters.length){
     h+='<div style="margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px;"><div style="font-size:.74rem;font-weight:600;color:var(--text-dim);margin-bottom:4px;">📜 冒险编年史</div>';
@@ -1901,7 +2212,7 @@ async function executeAdvChoice(choiceText,dc){
     adv.prevNarr=d.narrative||'';
     adv.choices=d.choices||[];
 
-    if(adv.turn>=adv.maxTurns||!d.choices||!d.choices.length){
+    if(adv.turn>=adv.maxTurns){
       adv.active=false;adv.cooldownUntil=Date.now()+20*60*1000;adv.choices=[];
       advShowingFinalNarr=true; // prevent genChapterSummary from overwriting
       saveAdv();
@@ -1912,6 +2223,10 @@ async function executeAdvChoice(choiceText,dc){
       // Generate story summary via LLM in background
       genChapterSummary(adv.history,d.narrative);
     }else{
+      // If LLM returned no choices for a mid-round, provide defaults so adventure continues
+      if(!adv.choices||!adv.choices.length){
+        adv.choices=[{text:'继续探索前方',dc:8},{text:'谨慎观察周围环境',dc:10},{text:'大胆采取行动',dc:14}];
+      }
       saveAdv();
       renderAdvInPanel();
     }
@@ -2047,6 +2362,10 @@ function renderAdvCooldownInPanel(){
       h+=esc(story)+'</div>';
     });
     h+='</div>';
+  }
+  // Show 结局 button immediately during cooldown (if chapters exist)
+  if(chapters.length){
+    h+='<div class="adv-choice" style="margin-top:12px;opacity:.85;" onclick="finishAdventure()">🏆 结局</div>';
   }
   h+='<div id="cdNewAdvBtn"></div>';
   // Archives
